@@ -32,25 +32,45 @@ export default function LoginPage() {
   })
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/dashboard')
+    console.log('Login page useEffect - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading)
+    
+    if (isAuthenticated && !isLoading) {
+      console.log('User is authenticated, redirecting to dashboard...')
+      router.replace('/dashboard')
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, isLoading, router])
 
   const onSubmit = async (data: LoginForm) => {
     setIsSubmitting(true)
     try {
+      console.log('Submitting login form...')
       const success = await login(data.username, data.password)
+      console.log('Login success:', success)
+      
       if (success) {
-        router.push('/dashboard')
+        console.log('Redirecting to dashboard...')
+        // Используем replace вместо push для предотвращения возврата на login
+        router.replace('/dashboard')
       }
+    } catch (error) {
+      console.error('Login form error:', error)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (isAuthenticated) {
-    return null
+  // Показываем загрузку если пользователь аутентифицирован но еще идет редирект
+  if (isAuthenticated && !isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-full mb-4">
+            <Wallet className="w-8 h-8 text-white animate-spin" />
+          </div>
+          <p className="text-gray-600">Перенаправление...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

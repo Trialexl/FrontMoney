@@ -63,11 +63,15 @@ class ApiClient {
   }
 
   private saveTokensToStorage() {
-    if (this.accessToken) {
-      localStorage.setItem('access_token', this.accessToken)
-    }
-    if (this.refreshToken) {
-      localStorage.setItem('refresh_token', this.refreshToken)
+    if (typeof window !== 'undefined') {
+      if (this.accessToken) {
+        localStorage.setItem('access_token', this.accessToken)
+        // Также сохраняем в cookies для middleware
+        document.cookie = `access_token=${this.accessToken}; path=/; max-age=86400; SameSite=Lax`
+      }
+      if (this.refreshToken) {
+        localStorage.setItem('refresh_token', this.refreshToken)
+      }
     }
   }
 
@@ -83,6 +87,8 @@ class ApiClient {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
+      // Очищаем cookies
+      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
     }
   }
 
@@ -147,7 +153,15 @@ class ApiClient {
   
   // Users
   async getProfile() {
-    return this.get('/profile/')
+    try {
+      console.log('API: Fetching profile from /profile/')
+      const result = await this.get('/profile/')
+      console.log('API: Profile fetched successfully')
+      return result
+    } catch (error) {
+      console.error('API: Profile fetch failed:', error)
+      throw error
+    }
   }
 
   // Справочники
